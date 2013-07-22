@@ -2,13 +2,12 @@
 
 # Form implementation generated from reading ui file 'preview.ui'
 #
-# Created: Mon Jul 22 01:14:35 2013
+# Created: Mon Jul 22 20:04:31 2013
 #      by: pyside-uic 0.2.14 running on PySide 1.1.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PySide import QtCore, QtGui
-
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -42,10 +41,6 @@ class Ui_Form(object):
         self.playButton.setArrowType(QtCore.Qt.RightArrow)
         self.playButton.setObjectName("playButton")
         self.horizontalLayout.addWidget(self.playButton)
-        self.horizontalSlider = QtGui.QSlider(self.frame_2)
-        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider.setObjectName("horizontalSlider")
-        self.horizontalLayout.addWidget(self.horizontalSlider)
         self.label = QtGui.QLabel(self.frame_2)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)

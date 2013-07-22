@@ -48,7 +48,7 @@ class Mlt(QtCore.QThread):
         self.pause()
 
         while not self.consumer.is_stopped():
-            sleep(0.1)
+            sleep(0.51)
 
         self.consumer.stop()
         mlt.Factory.close()

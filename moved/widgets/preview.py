@@ -22,7 +22,7 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.mlt = Mlt()
 
         self.play_head = PlayHead()
-        self.horizontalLayout.insertWidget(1, self.play_head)
+        self.verticalLayout_3.insertWidget(0, self.play_head)
 
         self.mlt.s_producer_update.connect(self.on_playhead_timer)
         self.mlt.s_play.connect(self.on_s_play)
@@ -61,12 +61,18 @@ class Preview(QtGui.QWidget, Ui_Form):
 
     def load_movie(self, file_name):
         self.mlt.set_movie(file_name)
+        self.movieLabel.setText(os.path.basename(file_name))
 
     def closeEvent(self, *args, **kwargs):
         self.mlt.stop_player()
-        self.mlt.close()
         self.mlt.quit()
         self.mlt.wait()
+        self.widget = None
+        self.mlt.consumer = None
+        self.mlt.factory = None
+        self.mlt.producer = None
+        self.mlt = None
+        del self.mlt
 
     def get_percentage(self, producer):
         position = float(producer.position())

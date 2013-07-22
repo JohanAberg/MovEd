@@ -18,7 +18,7 @@ class Mlt(QtCore.QThread):
         self.movie_file = None
 
         self.position_timer = QTimer()
-        self.position_timer.setInterval(250)
+        self.position_timer.setInterval(125)
         self.position_timer.timeout.connect(self.onPositionTimeout)
 
     def onPositionTimeout(self):
@@ -47,11 +47,12 @@ class Mlt(QtCore.QThread):
         self.consumer.start()
         self.pause()
 
-        while not self.consumer.is_stopped():
-            sleep(0.51)
-
-        self.consumer.stop()
-        mlt.Factory.close()
+        try:
+            while not self.consumer.is_stopped():
+                sleep(0.25)
+        except AttributeError, err:
+            print 'closing...\n\n'
+            mlt.Factory.close()
 
     def set_movie(self, file_path):
         self.movie_file = file_path
@@ -92,6 +93,7 @@ class Mlt(QtCore.QThread):
 
     def stop_player(self):
         self.consumer.stop()
+
 
     def refresh(self):
         self.consumer.set("refresh", 1)

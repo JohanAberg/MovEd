@@ -12,19 +12,42 @@ class Preview(QtGui.QWidget, Ui_Form):
 		super(Preview, self).__init__(parent)
 		self.setupUi(self)
 
+		# needed for SDL to be used inside an existing Qt widget
+		#
 		win_id = self.widget.winId()
 		os.putenv('SDL_WINDOWID', str(win_id))
 
 		self.mlt = Mlt()
-		self.playing = False
 
-		self.mlt.producer_update.connect(self.on_playhead_timer)
+		self.mlt.s_producer_update.connect(self.on_playhead_timer)
+		self.mlt.s_play.connect(self.on_s_play)
+		self.mlt.s_stop.connect(self.on_s_stop)
+		self.mlt.s_seek.connect(self.on_s_seek)
 
 		self.horizontalSlider.setMaximum(self.HEAD_RESOLUTION)
-		self.horizontalSlider.sliderReleased.connect(self.onHeadValueChanged)
+		self.horizontalSlider.sliderMoved.connect(self.onHeadValueChanged)
+		# self.horizontalSlider.valueChanged.connect(self.onHeadValueChanged) # causes stuttering
 		self.horizontalSlider.sliderPressed.connect(self.onHeadPressed)
+		self.horizontalSlider.sliderReleased.connect(self.set_play_button_state)
 
-		self.playButton.pressed.connect(self.onPlay)
+		self.playButton.released.connect(self.onPlay)
+
+	def on_s_seek(self, producer):
+		self.set_time_label(producer)
+
+	def set_play_button_state(self):
+		if self.mlt.is_playing():
+			self.playButton.setChecked(True)
+			self.playButton.setDown(True)
+		else:
+			self.playButton.setChecked(False)
+			self.playButton.setDown(False)
+
+	def on_s_stop(self, producer):
+		self.set_play_button_state()
+
+	def on_s_play(self, producer):
+		self.set_play_button_state()
 
 	def onHeadPressed(self):
 		self.mlt.pause()
@@ -38,16 +61,16 @@ class Preview(QtGui.QWidget, Ui_Form):
 		self.mlt.quit()
 		self.mlt.wait()
 
-
 	def get_percentage(self, producer):
 		position = float(producer.position())
 		length = float(producer.get_length())
 		decimal_position = position / length
 		percent = decimal_position * self.HEAD_RESOLUTION
+		# print position, length, decimal_position, percent
 		return percent
 
 	def set_time_label(self, producer):
-		self.label.setText('%d/%d' % (self.get_percentage(producer), producer.get_length()))
+		self.label.setText('%d/%d' % (producer.position(), producer.get_length()))
 
 	def set_playhead(self, producer):
 		self.horizontalSlider.setValue(self.get_percentage(producer))
@@ -57,30 +80,26 @@ class Preview(QtGui.QWidget, Ui_Form):
 		self.set_playhead(producer)
 
 	def onHeadValueChanged(self):
-		value = self.horizontalSlider.value()
-		decimal = (value * self.HEAD_RESOLUTION) / self.mlt.producer.get_length()
+		value = float(self.horizontalSlider.value())
+		percent = value / self.HEAD_RESOLUTION
+		length = self.mlt.producer.get_length()
+		frame = length * percent
 		self.mlt.refresh()
-		self.seek(decimal)
+		self.seek(frame)
 		self.mlt.refresh()
 
 	def seek(self, frame_number):
-		# self.mlt.producer.pause()
-		self.mlt.producer.seek(int(frame_number))
+		self.mlt.seek(int(frame_number))
 
 	def onPlay(self):
 		if not self.mlt.isRunning():
 			self.mlt.start()
-			sleep(.25) #TODO wait for thread to startup
+			sleep(.25) #TODO wait for thread to startup, find a better way...
 
-		if not self.playing:
+		if not self.mlt.is_playing():
 			self.mlt.play()
-			self.playButton.setChecked(False)
-			self.playing = True
 		else:
-			self.playButton.setChecked(True)
 			self.mlt.pause()
-			self.playing = False
 
-		# self.set_playhead()
 
 

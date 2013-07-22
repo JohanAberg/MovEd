@@ -6,7 +6,10 @@ from PySide.QtCore import QTimer
 
 class Mlt(QtCore.QThread):
 
-	producer_update = QtCore.Signal(object)
+	s_producer_update = QtCore.Signal(object)
+	s_play = QtCore.Signal(object)
+	s_stop = QtCore.Signal(object)
+	s_seek = QtCore.Signal(object)
 
 	def __init__(self):
 		super(Mlt, self).__init__()
@@ -16,11 +19,11 @@ class Mlt(QtCore.QThread):
 		self.movie_file = None
 
 		self.position_timer = QTimer()
-		self.position_timer.setInterval(70)
+		self.position_timer.setInterval(250)
 		self.position_timer.timeout.connect(self.onPositionTimeout)
 
 	def onPositionTimeout(self):
-		self.producer_update.emit(self.producer)
+		self.s_producer_update.emit(self.producer)
 
 	def run(self):
 		self.setup()
@@ -72,13 +75,16 @@ class Mlt(QtCore.QThread):
 	def play(self):
 		self.producer.set_speed(1)
 		self.position_timer.start()
+		self.s_play.emit(self.producer)
 
 	def stop(self):
 		self.producer.set_speed(0)
 		self.position_timer.stop()
+		self.s_stop.emit(self.producer)
 
 	def pause(self):
-		self.producer.pause()
+		self.stop()
+		# self.producer.pause()
 
 	def start_player(self):
 		self.consumer.start()
@@ -89,6 +95,15 @@ class Mlt(QtCore.QThread):
 
 	def refresh(self):
 		self.consumer.set("refresh", 1)
+
+	def is_playing(self):
+		if self.producer.get_speed() > 0:
+			return True
+		return False
+
+	def seek(self, frame):
+		self.producer.seek(frame)
+		self.s_seek.emit(self.producer)
 
 
 if __name__ == "__main__":

@@ -1,23 +1,38 @@
+from PySide import QtCore
 from time import sleep
-
-__author__ = 'aberg'
 import mlt
+from PySide.QtCore import QTimer
 
-class Mlt(object):
+
+class Mlt(QtCore.QThread):
+
+	producer_update = QtCore.Signal(object)
 
 	def __init__(self):
+		super(Mlt, self).__init__()
 		self.consumer = None
 		self.factory = None
 		self.producer = None
+		self.movie_file = None
+
+		self.position_timer = QTimer()
+		self.position_timer.setInterval(70)
+		self.position_timer.timeout.connect(self.onPositionTimeout)
+
+	def onPositionTimeout(self):
+		self.producer_update.emit(self.producer)
+
+	def run(self):
+		self.setup()
 
 	def setup(self):
-
-		file_name = "/home/aberg/dvdrip-data/unnamed/vob/001/unnamed-003.vob"
 
 		self.factory = mlt.Factory().init()
 		profile = mlt.Profile("DV/DVD PAL")
 
-		self.producer = mlt.Producer(profile, file_name)
+		self.producer = mlt.Producer(profile, self.movie_file)
+		if not self.producer.is_valid():
+			raise RuntimeError('Movie file not valid')
 
 		# self.filter = mlt.Filter(profile, "greyscale")
 		# self.filter.connect(producer)
@@ -31,11 +46,13 @@ class Mlt(object):
 		self.pause()
 
 		while not self.consumer.is_stopped():
-		# while True:
 			sleep(0.1)
 
 		self.consumer.stop()
 		mlt.Factory.close()
+
+	def set_movie(self, file_path):
+		self.movie_file = file_path
 
 	def close(self):
 		mlt.Factory.close()
@@ -54,16 +71,18 @@ class Mlt(object):
 
 	def play(self):
 		self.producer.set_speed(1)
+		self.position_timer.start()
 
 	def stop(self):
 		self.producer.set_speed(0)
+		self.position_timer.stop()
 
 	def pause(self):
 		self.producer.pause()
 
 	def start_player(self):
 		self.consumer.start()
-		# self.producer.set_speed(1)
+
 
 	def stop_player(self):
 		self.consumer.stop()
@@ -74,5 +93,6 @@ class Mlt(object):
 
 if __name__ == "__main__":
 	m = Mlt()
+	m.set_movie('/home/aberg/dvdrip-data/unnamed/vob/001/unnamed-003.vob')
 	m.setup()
-	# m.start_player()
+# m.start_player()

@@ -1,5 +1,5 @@
 from PySide import QtCore
-from moved.base.mlt_backend import Mlt
+from moved.base.mlt_interface import Mlt
 
 
 class MltThread(QtCore.QThread):

@@ -28,6 +28,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, preview_dock)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, browser_dock)
 
+    def closeEvent(self, event):
+        self.preview.close()
+        self.preview = None
+        del self.preview
 
     def onDoubleClick(self, index):
         if not self.file_browser.model.isDir(index):

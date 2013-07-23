@@ -38,12 +38,14 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.playButton.released.connect(self.onPlay)
         self.playButton.setEnabled(False)
 
+        self.init_mlt()
+
     def init_mlt(self):
         if not self.mlt.isRunning():
             self.mlt.start()
             self.play_head.setEnabled(True)
             self.playButton.setEnabled(True)
-            sleep(1) #TODO wait for thread to startup, find a better way...
+            # sleep(1) #TODO wait for thread to startup, find a better way...
 
         if not self.mlt.isRunning():
             print 'Aborting...'
@@ -56,7 +58,7 @@ class Preview(QtGui.QWidget, Ui_Form):
         if self.mlt.consumer and not self.mlt.consumer.is_stopped:
             self.mlt.stop_player()
         self.mlt.load_new_movie()
-
+        self.play_head.setValue(0)
 
     def on_s_seek(self, producer):
         text = self.set_time_label(producer)
@@ -83,7 +85,7 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.mlt.set_movie(file_name)
         self.movieLabel.setText(os.path.basename(file_name))
 
-    def closeEvent(self, *args, **kwargs):
+    def closeEvent(self, event):
         try:
             self.mlt.stop_player()
             self.mlt.quit()
@@ -94,7 +96,7 @@ class Preview(QtGui.QWidget, Ui_Form):
             self.mlt = None
             del self.mlt
         except AttributeError, err:
-            print 'closeEvent:', err
+            print 'Preview.closeEvent:', err
 
     def get_percentage(self, producer):
         position = float(producer.position())
@@ -130,8 +132,6 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.mlt.seek(int(frame_number))
 
     def onPlay(self):
-
-
         if not self.mlt.is_playing():
             self.mlt.play()
         else:

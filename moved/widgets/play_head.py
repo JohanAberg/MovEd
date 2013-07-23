@@ -34,6 +34,7 @@ class PlayHead(QtGui.QWidget):
         self._value = float(value)
         fraction = self._value / self.max
         self.head_x = float(self.width()) * fraction
+        self.sliderMoved.emit(None)
         self.update()
 
     def getValue(self):

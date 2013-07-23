@@ -31,25 +31,20 @@ class Mlt(QtCore.QThread):
         try:
             self.setup()
         except RuntimeError, err:
-            print 'ERROR starting thread:', err
+            print 'ERROR: Mlt.run: starting thread:', err
             self.quit()
 
-
+    def set_filter(self, filter_name):
+        filter = mlt.Filter(self.profile, filter_name)
+        filter.connect(self.producer)
+        self.consumer.connect(filter)
 
     def setup(self):
 
-        factory = mlt.Factory().init()
-        self.profile = mlt.Profile("DV/DVD PAL")
-        self.producer = mlt.Producer(self.profile, self.movie_file)
-        if not self.producer.is_valid():
-            raise RuntimeError('Movie file not valid')
-
-        # self.filter = mlt.Filter(profile, "greyscale")
-        # self.filter.connect(producer)
+        self.load_new_movie()
 
         self.consumer = mlt.Consumer()
         self.consumer.connect(self.producer)
-        # self.consumer.connect(filter)
         self.consumer.set("real_time", 1)
 
         self.consumer.start()
@@ -64,11 +59,18 @@ class Mlt(QtCore.QThread):
 
     def load_new_movie(self):
         mlt.Factory.init()
+        self.profile = mlt.Profile("DV/DVD PAL")
         self.producer = mlt.Producer(self.profile, self.movie_file)
-        self.stop()
-        self.consumer.connect(self.producer)
-        if self.consumer.is_stopped:
-            self.consumer.start()
+        if not self.producer.is_valid():
+            raise RuntimeError('Movie file not valid')
+        if self.consumer:
+            self.stop()
+            self.consumer.connect(self.producer)
+
+        # self.stop()
+        # self.consumer.connect(self.producer)
+        # if self.consumer.is_stopped:
+        #     self.consumer.start()
 
     def set_movie(self, file_path):
         self.movie_file = file_path
@@ -112,6 +114,8 @@ class Mlt(QtCore.QThread):
 
 
     def refresh(self):
+        if not self.consumer:
+            return
         self.consumer.set("refresh", 1)
 
     def is_playing(self):

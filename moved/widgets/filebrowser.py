@@ -7,6 +7,7 @@ class FileBrowser(QtGui.QTreeView):
     def __init__(self):
 
         root_path = '/home/aberg/dvdrip-data/film1/avi/'
+        root_path = '/media/aberg/OS/Documents and Settings/Johan/Videos/JOHAN_DVDs/v2/VIDEO_TS'
 
         super(FileBrowser, self).__init__()
         self.model = QtGui.QFileSystemModel()

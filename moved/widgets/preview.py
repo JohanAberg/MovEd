@@ -36,11 +36,31 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.play_head.sliderReleased.connect(self.set_play_button_state)
 
         self.playButton.released.connect(self.onPlay)
+        self.playButton.setEnabled(False)
+
+    def init_mlt(self):
+        if not self.mlt.isRunning():
+            self.mlt.start()
+            self.play_head.setEnabled(True)
+            self.playButton.setEnabled(True)
+            sleep(1) #TODO wait for thread to startup, find a better way...
+
+        if not self.mlt.isRunning():
+            print 'Aborting...'
+            return
+
+
+    def load_movie(self, file_path):
+        self.set_movie_path(str(file_path))
+        self.init_mlt()
+        if self.mlt.consumer and not self.mlt.consumer.is_stopped:
+            self.mlt.stop_player()
+        self.mlt.load_new_movie()
 
 
     def on_s_seek(self, producer):
         text = self.set_time_label(producer)
-        self.play_head.set_head_label(text)
+        self.play_head.set_head_label('%d' % producer.position())
 
     def set_play_button_state(self):
         if self.mlt.is_playing():
@@ -59,20 +79,22 @@ class Preview(QtGui.QWidget, Ui_Form):
     def onHeadPressed(self):
         self.mlt.pause()
 
-    def load_movie(self, file_name):
+    def set_movie_path(self, file_name):
         self.mlt.set_movie(file_name)
         self.movieLabel.setText(os.path.basename(file_name))
 
     def closeEvent(self, *args, **kwargs):
-        self.mlt.stop_player()
-        self.mlt.quit()
-        self.mlt.wait()
-        self.widget = None
-        self.mlt.consumer = None
-        self.mlt.factory = None
-        self.mlt.producer = None
-        self.mlt = None
-        del self.mlt
+        try:
+            self.mlt.stop_player()
+            self.mlt.quit()
+            self.mlt.wait()
+            self.widget = None
+            self.mlt.consumer = None
+            self.mlt.producer = None
+            self.mlt = None
+            del self.mlt
+        except AttributeError, err:
+            print 'closeEvent:', err
 
     def get_percentage(self, producer):
         position = float(producer.position())
@@ -93,7 +115,7 @@ class Preview(QtGui.QWidget, Ui_Form):
     def on_playhead_timer(self, producer):
         self.set_playhead(producer)
         text = self.set_time_label(producer)
-        self.play_head.set_head_label(text)
+        self.play_head.set_head_label('%d' % producer.position())
 
     def onHeadValueChanged(self):
         value = float(self.play_head.value())
@@ -108,10 +130,7 @@ class Preview(QtGui.QWidget, Ui_Form):
         self.mlt.seek(int(frame_number))
 
     def onPlay(self):
-        if not self.mlt.isRunning():
-            self.mlt.start()
-            self.play_head.setEnabled(True)
-            sleep(.25) #TODO wait for thread to startup, find a better way...
+
 
         if not self.mlt.is_playing():
             self.mlt.play()

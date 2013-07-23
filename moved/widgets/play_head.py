@@ -121,6 +121,7 @@ class PlayHead(QtGui.QWidget):
         qp.setRenderHint(QtGui.QPainter.Antialiasing, True)
         qp.drawLine(QPointF(self.head_x, 0.0), QPointF(self.head_x, rect.height()))
 
+        qp.setRenderHint(QtGui.QPainter.Antialiasing, False)
         fm = QtGui.QFontMetricsF(qp.font())
         rect = fm.boundingRect(self.head_label)
         qp.setBrush(QtGui.QColor(200, 210, 210))

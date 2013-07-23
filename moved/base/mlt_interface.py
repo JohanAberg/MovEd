@@ -13,9 +13,9 @@ class Mlt(QtCore.QThread):
     def __init__(self):
         super(Mlt, self).__init__()
         self.consumer = None
-        self.factory = None
         self.producer = None
         self.movie_file = None
+        self.profile = None
 
         self.position_timer = QTimer()
         self.position_timer.setInterval(125)
@@ -25,14 +25,22 @@ class Mlt(QtCore.QThread):
         self.s_producer_update.emit(self.producer)
 
     def run(self):
-        self.setup()
+        """
+        starts thread
+        """
+        try:
+            self.setup()
+        except RuntimeError, err:
+            print 'ERROR starting thread:', err
+            self.quit()
+
+
 
     def setup(self):
 
-        self.factory = mlt.Factory().init()
-        profile = mlt.Profile("DV/DVD PAL")
-
-        self.producer = mlt.Producer(profile, self.movie_file)
+        factory = mlt.Factory().init()
+        self.profile = mlt.Profile("DV/DVD PAL")
+        self.producer = mlt.Producer(self.profile, self.movie_file)
         if not self.producer.is_valid():
             raise RuntimeError('Movie file not valid')
 
@@ -53,6 +61,14 @@ class Mlt(QtCore.QThread):
         except AttributeError, err:
             print 'closing...\n\n'
             mlt.Factory.close()
+
+    def load_new_movie(self):
+        mlt.Factory.init()
+        self.producer = mlt.Producer(self.profile, self.movie_file)
+        self.stop()
+        self.consumer.connect(self.producer)
+        if self.consumer.is_stopped:
+            self.consumer.start()
 
     def set_movie(self, file_path):
         self.movie_file = file_path

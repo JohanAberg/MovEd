@@ -1,0 +1,4 @@
+
+
+class Clip(object):
+    pass

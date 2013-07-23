@@ -46,6 +46,11 @@ class Mlt(QtCore.QThread):
         self.consumer = mlt.Consumer()
         self.consumer.connect(self.producer)
         self.consumer.set("real_time", 1)
+        self.consumer.set("real_time", 1)
+        self.consumer.set("rescale", "nearest")
+        self.consumer.set("resize", 1)
+        self.consumer.set("progressive", 1)
+        print "description", self.profile.description()
 
         self.consumer.start()
         self.pause()
@@ -60,12 +65,17 @@ class Mlt(QtCore.QThread):
     def load_new_movie(self):
         mlt.Factory.init()
         self.profile = mlt.Profile("DV/DVD PAL")
+        # self.movie_file = 'xml:/tmp/mlt_tractor.xml'
         self.producer = mlt.Producer(self.profile, self.movie_file)
         if not self.producer.is_valid():
             raise RuntimeError('Movie file not valid')
         if self.consumer:
-            self.stop()
+            self.consumer.purge()
             self.consumer.connect(self.producer)
+            self.producer.set_speed(0)
+            self.consumer.start()
+            # self.stop()
+            # self.consumer.connect(self.producer)
 
         # self.stop()
         # self.consumer.connect(self.producer)

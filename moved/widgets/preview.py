@@ -1,7 +1,7 @@
-from PySide import QtGui
+from PySide import QtGui, QtCore
 import os
-from time import sleep
 from moved.base.mlt_interface import Mlt
+from moved.base.utils import get_icon_path
 from moved.widgets.play_head import PlayHead
 from ui.preview import Ui_Form
 
@@ -37,6 +37,8 @@ class Preview(QtGui.QWidget, Ui_Form):
 
         self.playButton.released.connect(self.onPlay)
         self.playButton.setEnabled(False)
+        self.playButton.setArrowType(QtCore.Qt.NoArrow)
+        self.playButton.setIcon(QtGui.QIcon(get_icon_path('play_2_s.png')))
 
         self.init_mlt()
 

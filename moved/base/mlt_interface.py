@@ -10,8 +10,9 @@ class Mlt(QtCore.QThread):
     s_stop = QtCore.Signal(object)
     s_seek = QtCore.Signal(object)
 
-    def __init__(self):
+    def __init__(self, parent=None):
         super(Mlt, self).__init__()
+        self.parent = parent
         self.consumer = None
         self.producer = None
         self.movie_file = None
@@ -44,16 +45,18 @@ class Mlt(QtCore.QThread):
         self.load_new_movie()
 
         self.consumer = mlt.Consumer()
+        if self.parent:
+            win_id = self.parent.widget.winId()
+            self.consumer.set("window_id", int(win_id))
+
         self.consumer.connect(self.producer)
-        self.consumer.set("real_time", 1)
         self.consumer.set("real_time", 1)
         self.consumer.set("rescale", "nearest")
         self.consumer.set("resize", 1)
         self.consumer.set("progressive", 1)
-        print "description", self.profile.description()
 
         self.consumer.start()
-        self.pause()
+        # self.pause()
 
         try:
             while not self.consumer.is_stopped():
@@ -64,13 +67,18 @@ class Mlt(QtCore.QThread):
 
     def load_new_movie(self):
         mlt.Factory.init()
-        self.profile = mlt.Profile("DV/DVD PAL")
+        # self.profile = mlt.Profile("DV/DVD PAL")
+        self.profile = mlt.Profile()
         # self.movie_file = 'xml:/tmp/mlt_tractor.xml'
+        print self.profile.description(), self.movie_file
         self.producer = mlt.Producer(self.profile, self.movie_file)
         if not self.producer.is_valid():
+            self.producer = None
+            self.profile = None
             raise RuntimeError('Movie file not valid')
         if self.consumer:
-            self.consumer.purge()
+            # print 'purging'
+            # self.consumer.purge()
             self.consumer.connect(self.producer)
             self.producer.set_speed(0)
             self.consumer.start()
@@ -101,9 +109,9 @@ class Mlt(QtCore.QThread):
         return self.consumer.is_stopped()
 
     def play(self):
-        self.producer.set_speed(1)
-        self.position_timer.start()
-        self.s_play.emit(self.producer)
+        if self.producer:
+            self.producer.set_speed(1)
+            self.s_play.emit(self.producer)
 
     def stop(self):
         self.producer.set_speed(0)
@@ -129,7 +137,7 @@ class Mlt(QtCore.QThread):
         self.consumer.set("refresh", 1)
 
     def is_playing(self):
-        if self.producer.get_speed() > 0:
+        if self.producer and self.producer.get_speed() > 0:
             return True
         return False
 
@@ -140,6 +148,5 @@ class Mlt(QtCore.QThread):
 
 if __name__ == "__main__":
     m = Mlt()
-    m.set_movie('/home/aberg/dvdrip-data/unnamed/vob/001/unnamed-003.vob')
+    m.set_movie('/home/aberg/PycharmProjects/MovEd/res/mov/wheel.mov')
     m.setup()
-# m.start_player()

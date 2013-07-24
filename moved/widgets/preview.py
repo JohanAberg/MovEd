@@ -1,5 +1,6 @@
 from PySide import QtGui, QtCore
 import os
+from time import sleep
 from moved.base.mlt_interface import Mlt
 from moved.base.utils import get_icon_path
 from moved.widgets.play_head import PlayHead
@@ -13,13 +14,9 @@ class Preview(QtGui.QWidget, Ui_Form):
         super(Preview, self).__init__(parent)
         self.setupUi(self)
 
-        # needed for SDL to be used inside an existing Qt widget
-        #
-        win_id = self.widget.winId()
-        os.putenv('SDL_WINDOWID', str(win_id))
 
         # the mlt class that is actually playing the videos
-        self.mlt = Mlt()
+        self.mlt = Mlt(self)
 
         self.play_head = PlayHead()
         self.verticalLayout_3.insertWidget(0, self.play_head)
@@ -44,21 +41,27 @@ class Preview(QtGui.QWidget, Ui_Form):
 
     def init_mlt(self):
         if not self.mlt.isRunning():
+            print 'starting thread'
             self.mlt.start()
             self.play_head.setEnabled(True)
             self.playButton.setEnabled(True)
-            # sleep(1) #TODO wait for thread to startup, find a better way...
+            sleep(1) #TODO wait for thread to startup, find a better way...
 
         if not self.mlt.isRunning():
             print 'Aborting...'
             return
 
+    def set_mlt_environ(self):
+        # needed for SDL to be used inside an existing Qt widget
+        #
+        win_id = self.widget.winId()
+        os.putenv('SDL_WINDOWID', str(win_id))
 
     def load_movie(self, file_path):
-        self.set_movie_path(str(file_path))
         self.init_mlt()
-        if self.mlt.consumer and not self.mlt.consumer.is_stopped:
-            self.mlt.stop_player()
+        self.set_movie_path(str(file_path))
+        # if self.mlt.consumer and not self.mlt.consumer.is_stopped:
+        #     self.mlt.stop_player()
         self.mlt.load_new_movie()
         self.play_head.setValue(0)
 

@@ -6,6 +6,7 @@ from moved.widgets.preview import Preview
 file_name = "/home/aberg/dvdrip-data/unnamed/vob/001/unnamed-004.vob"
 file_name = '/home/aberg/Downloads/sample_iPod.m4v'
 file_name = '/home/aberg/Downloads/sample_iTunes.mov'
+file_name = '/home/aberg/PycharmProjects/MovEd/res/mov/wheel.mov'
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 

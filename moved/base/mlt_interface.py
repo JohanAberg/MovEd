@@ -65,6 +65,11 @@ class Mlt(QtCore.QThread):
             print 'closing...\n\n'
             mlt.Factory.close()
 
+    def load_tractor(self, tractor):
+        self.consumer = mlt.Consumer()
+        self.consumer.connect(tractor)
+        return self.consumer
+
     def load_new_movie(self):
         mlt.Factory.init()
         # self.profile = mlt.Profile("DV/DVD PAL")

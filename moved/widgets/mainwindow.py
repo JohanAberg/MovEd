@@ -1,4 +1,5 @@
 from PySide import QtGui, QtCore
+from moved.base.thumbnailer import Thumber
 from moved.widgets.ui.mainwindow import Ui_MainWindow
 from moved.widgets.filebrowser import FileBrowser
 from moved.widgets.preview import Preview
@@ -9,6 +10,9 @@ file_name = '/home/aberg/Downloads/sample_iTunes.mov'
 file_name = '/home/aberg/PycharmProjects/MovEd/res/mov/wheel.mov'
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
+    '''
+    this should move to a controller
+    '''
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -28,6 +32,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, preview_dock)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, browser_dock)
+
+        # self.thumber = Thumber()
+        # self.thumber.start()
 
     def closeEvent(self, event):
         self.preview.close()
